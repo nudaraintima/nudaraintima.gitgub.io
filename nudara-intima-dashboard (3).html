@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nudara Intima — Studio Ledger</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --bordeaux:#5E2436;
+  --bordeaux-deep:#421A26;
+  --rose:#C98CA0;
+  --rose-soft:#E9D2D8;
+  --blush:#F3E4E3;
+  --ivory:#FBF7F4;
+  --gold:#B7935A;
+  --charcoal:#2B2320;
+  --muted:#8A7A74;
+  --line:#E4D8D3;
+  --success:#54724F;
+  --success-bg:#E7EEE3;
+  --danger:#A6414B;
+  --danger-bg:#F6E3E1;
+  --radius:3px;
+  --shadow:0 1px 2px rgba(94,36,54,0.06), 0 8px 24px -12px rgba(94,36,54,0.18);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--ivory);
+  color:var(--charcoal);
+  font-family:'Manrope',sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--rose-soft);}
+
+/* ---------- Layout ---------- */
+.app{display:flex;min-height:100vh;}
+.sidebar{
+  width:232px;
+  flex-shrink:0;
+  background:var(--bordeaux);
+  color:var(--ivory);
+  display:flex;
+  flex-direction:column;
+  padding:28px 0 20px;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+.brand{
+  padding:0 22px 20px;
+  border-bottom:1px dashed rgba(251,247,244,0.28);
+  margin-bottom:14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+.brand-emblem{
+  width:64px;height:64px;color:var(--rose-soft);opacity:0.92;
+}
+.brand-emblem svg{width:100%;height:100%;display:block;}
+.brand-text{display:flex;flex-direction:column;align-items:center;text-align:center;}
+.brand-mark{
+  font-family:'Cormorant Garamond',serif;
+  font-size:24px;
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:0.04em;
+  line-height:1.1;
+}
+.brand-sub{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  color:var(--rose-soft);
+  margin-top:6px;
+  opacity:0.85;
+}
+.brand-tag{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-top:6px;
+  opacity:0.85;
+}
+.nav{display:flex;flex-direction:column;padding:6px 12px;gap:2px;flex:1;}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:var(--radius);
+  color:rgba(251,247,244,0.72);
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:0.01em;
+  border:none;
+  background:transparent;
+  text-align:left;
+  width:100%;
+  font-family:'Manrope',sans-serif;
+  transition:background .15s ease, color .15s ease;
+}
+.nav-item:hover{background:rgba(251,247,244,0.08);color:var(--ivory);}
+.nav-item.active{background:rgba(251,247,244,0.14);color:var(--ivory);}
+.nav-item .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:0;transition:opacity .15s;}
+.nav-item.active .dot{opacity:1;}
+.sidebar-foot{
+  padding:14px 22px 0;
+  border-top:1px dashed rgba(251,247,244,0.28);
+  font-size:10.5px;
+  color:rgba(251,247,244,0.55);
+  line-height:1.5;
+}
+
+.main{flex:1;min-width:0;padding:32px 40px 60px;}
+.main-wrap{flex:1;min-width:0;position:relative;overflow:hidden;}
+.main-wrap .main{position:relative;z-index:1;}
+.main-watermark{
+  position:absolute;top:-40px;right:-30px;width:420px;height:462px;
+  color:var(--bordeaux);opacity:0.045;pointer-events:none;z-index:0;
+  transform:rotate(8deg);
+}
+.main-watermark svg{width:100%;height:100%;display:block;}
+.view-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:14px;}
+.view-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--bordeaux-deep);}
+.view-desc{color:var(--muted);font-size:13px;margin-top:4px;}
+
+/* ---------- Tag-label signature element ---------- */
+.tag-label{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+  border:1px dashed var(--gold);
+  border-radius:20px;
+  padding:3px 10px 3px 8px;
+  margin-bottom:10px;
+  background:#fff;
+}
+.tag-label::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);}
+
+/* ---------- Cards ---------- */
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:20px 22px;
+}
+.card + .card{margin-top:18px;}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--bordeaux-deep);margin:0 0 2px;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rose);}
+.kpi.alert::after{background:var(--danger);}
+.kpi-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--bordeaux-deep);margin-top:6px;}
+.kpi-sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
+.kpi-sub.up{color:var(--success);}
+.kpi-sub.down{color:var(--danger);}
+
+.grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start;}
+
+/* ---------- Tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{
+  text-align:left;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  padding:0 10px 8px;
+  border-bottom:1px solid var(--line);
+  font-weight:500;
+}
+tbody td{padding:10px 10px;border-bottom:1px dashed var(--line);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--ivory);}
+.num{font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;}
+.tbl-wrap{overflow-x:auto;}
+
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700;letter-spacing:0.03em;font-family:'IBM Plex Mono',monospace;}
+.pill.ok{background:var(--success-bg);color:var(--success);}
+.pill.low{background:var(--danger-bg);color:var(--danger);}
+.cat-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;background:var(--blush);color:var(--bordeaux);font-weight:600;}
+
+/* ---------- Product photos / thumbnails ---------- */
+.product-thumb{
+  width:42px;height:42px;border-radius:var(--radius);object-fit:cover;
+  border:1px solid var(--line);background:var(--blush);display:block;
+}
+.product-thumb-placeholder{
+  width:42px;height:42px;border-radius:var(--radius);border:1px dashed var(--rose);
+  background:var(--blush);color:var(--rose);display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;flex-shrink:0;
+}
+.photo-upload{
+  display:flex;align-items:center;gap:12px;padding:10px;border:1px dashed var(--line);
+  border-radius:var(--radius);background:var(--ivory);
+}
+.photo-upload input[type=file]{
+  border:none;padding:0;font-size:11.5px;
+}
+.photo-preview-lg{
+  width:56px;height:56px;border-radius:var(--radius);object-fit:cover;border:1px solid var(--line);flex-shrink:0;
+}
+.photo-preview-lg-placeholder{
+  width:56px;height:56px;border-radius:var(--radius);border:1px dashed var(--rose);
+  background:#fff;color:var(--rose);display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;flex-shrink:0;
+}
+
+/* ---------- Sale entry: product picker card ---------- */
+.sale-picker{
+  display:flex;align-items:center;gap:14px;padding:14px;margin-bottom:16px;
+  background:linear-gradient(135deg, var(--blush) 0%, #fff 65%);
+  border:1px solid var(--rose-soft);border-radius:var(--radius);
+}
+.sale-picker-info{flex:1;min-width:0;}
+.sale-picker-name{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--bordeaux-deep);}
+.sale-picker-meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.sale-picker-meta .stock-tag{font-family:'IBM Plex Mono',monospace;}
+.sale-row-thumb{display:flex;align-items:center;gap:10px;}
+.sale-card-accent{border-left:3px solid var(--rose);}
+
+/* ---------- Shop-style Dashboard grid ---------- */
+.cat-rail{display:flex;gap:22px;overflow-x:auto;padding:4px 2px 18px;margin-bottom:6px;}
+.cat-tile{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;background:none;border:none;font-family:'Manrope',sans-serif;flex-shrink:0;}
+.cat-tile-media{
+  width:76px;height:76px;border-radius:50%;overflow:hidden;
+  border:2px solid var(--line);background:var(--blush);
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s ease;
+}
+.cat-tile.active .cat-tile-media{border-color:var(--bordeaux);}
+.cat-tile:hover .cat-tile-media{border-color:var(--rose);}
+.cat-tile-media img{width:100%;height:100%;object-fit:cover;}
+.cat-tile-media .ph{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--rose);font-weight:600;}
+.cat-tile-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap;
+}
+.cat-tile.active .cat-tile-label{color:var(--bordeaux-deep);font-weight:600;}
+
+.shop-meta-row{display:flex;align-items:baseline;justify-content:space-between;margin:4px 0 16px;}
+.shop-results{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.04em;}
+
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:20px 18px;}
+.shop-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+  box-shadow:var(--shadow);cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;
+}
+.shop-card:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(94,36,54,0.1), 0 14px 28px -14px rgba(94,36,54,0.28);}
+.shop-card-media{
+  position:relative;width:100%;aspect-ratio:3/4;background:var(--blush);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.shop-card-media img{width:100%;height:100%;object-fit:cover;}
+.shop-card-media .ph{font-family:'Cormorant Garamond',serif;font-size:44px;color:var(--rose);font-weight:600;}
+.shop-badge{
+  position:absolute;top:9px;left:9px;font-family:'IBM Plex Mono',monospace;font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;font-weight:700;
+}
+.shop-badge.new{background:#fff;color:var(--bordeaux);}
+.shop-badge.low{background:var(--danger);color:#fff;}
+.shop-card-body{padding:12px 13px 14px;}
+.shop-card-cat{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.shop-card-name{font-family:'Cormorant Garamond',serif;font-size:16.5px;font-weight:600;color:var(--bordeaux-deep);line-height:1.25;margin-bottom:6px;min-height:21px;}
+.shop-card-price{font-size:13px;font-weight:700;color:var(--charcoal);}
+.shop-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.shop-card-stock{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
+
+.row-actions{display:flex;gap:8px;}
+.icon-btn{
+  border:1px solid var(--line);background:#fff;border-radius:var(--radius);
+  padding:4px 9px;font-size:11.5px;cursor:pointer;color:var(--bordeaux);font-family:'Manrope',sans-serif;font-weight:600;
+}
+.icon-btn:hover{background:var(--blush);}
+.icon-btn.danger{color:var(--danger);}
+.icon-btn.danger:hover{background:var(--danger-bg);}
+
+/* ---------- Forms ---------- */
+.btn{
+  background:var(--bordeaux);color:#fff;border:none;border-radius:var(--radius);
+  padding:10px 18px;font-size:12.5px;font-weight:700;letter-spacing:0.02em;cursor:pointer;
+  font-family:'Manrope',sans-serif;
+}
+.btn:hover{background:var(--bordeaux-deep);}
+.btn.ghost{background:transparent;color:var(--bordeaux);border:1px solid var(--bordeaux);}
+.btn.ghost:hover{background:var(--blush);}
+.btn.gold{background:var(--gold);}
+.btn.gold:hover{background:#9c7c48;}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+label{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+input,select{
+  width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:var(--radius);
+  font-family:'Manrope',sans-serif;font-size:13px;color:var(--charcoal);background:#fff;
+}
+input:focus,select:focus{outline:2px solid var(--rose);outline-offset:1px;border-color:var(--rose);}
+.form-actions{margin-top:14px;display:flex;gap:10px;}
+
+.divider-dash{border:none;border-top:1px dashed var(--line);margin:18px 0;}
+
+.chart-box{position:relative;height:260px;}
+.chart-box.tall{height:300px;}
+
+.empty{color:var(--muted);font-size:13px;padding:20px 4px;text-align:center;}
+.small{font-size:11.5px;color:var(--muted);}
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--bordeaux-deep);color:#fff;
+  padding:11px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow);
+  opacity:0;transform:translateY(8px);transition:all .25s ease;pointer-events:none;z-index:50;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+
+@media (max-width:900px){
+  .app{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:14px 16px;overflow-x:auto;}
+  .brand{border:none;padding:0 16px 0 0;margin:0;}
+  .brand-emblem{width:36px;height:36px;}
+  .nav{flex-direction:row;padding:0;}
+  .sidebar-foot{display:none;}
+  .main{padding:22px 16px 40px;}
+  .main-watermark{width:220px;height:242px;top:-10px;right:-40px;opacity:0.05;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .grid-2{grid-template-columns:1fr;}
+  .shop-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-emblem" aria-hidden="true">
+        <svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M100 10 C96 4 87 5 86 12 C85 19 93 25 100 33 C107 25 115 19 114 12 C113 5 104 4 100 10 Z" stroke-width="2"/>
+          <path d="M22 100 C22 55 55 34 84 32" stroke-width="1.6"/>
+          <path d="M178 100 C178 55 145 34 116 32" stroke-width="1.6"/>
+          <path d="M78 58 C78 44 88 35 100 35 C110 35 116 40 118 47" stroke-width="1.8"/>
+          <path d="M118 47 C124 42 132 41 138 45 C143 48 144 54 140 58 C146 58 151 63 150 69 C149 74 143 77 137 75 C141 79 141 85 136 88 C131 91 124 89 122 83" stroke-width="1.6"/>
+          <path d="M118 47 C122 52 121 60 115 63" stroke-width="1.3"/>
+          <path d="M74 52 C68 60 65 70 68 80 C70 87 67 95 62 101" stroke-width="1.6"/>
+          <path d="M78 58 C74 64 72 70 74 76 C75 80 78 83 82 85 C87 88 91 90 93 94" stroke-width="1.8"/>
+          <path d="M71 73 C69 75 69 77 71 78" stroke-width="1.3"/>
+          <path d="M74 76 C68 82 62 90 60 98 C58 106 60 114 64 120" stroke-width="1.6"/>
+          <path d="M93 94 C97 99 101 103 101 109 C101 115 97 119 91 125 C83 133 75 141 73 151 C71 159 75 167 83 172" stroke-width="1.8"/>
+          <path d="M95 111 C93 128 91 145 91 162" stroke-width="0.9"/>
+          <path d="M102 112 C104 130 106 146 104 163" stroke-width="0.9"/>
+        </svg>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">Data is stored privately to your account and stays on this device's session.</div>
+  </aside>
+  <div class="main-wrap">
+    <div class="main-watermark" aria-hidden="true">
+      <svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M100 10 C96 4 87 5 86 12 C85 19 93 25 100 33 C107 25 115 19 114 12 C113 5 104 4 100 10 Z" stroke-width="1.6"/>
+        <path d="M22 100 C22 55 55 34 84 32" stroke-width="1.2"/>
+        <path d="M178 100 C178 55 145 34 116 32" stroke-width="1.2"/>
+        <path d="M78 58 C78 44 88 35 100 35 C110 35 116 40 118 47" stroke-width="1.4"/>
+        <path d="M118 47 C124 42 132 41 138 45 C143 48 144 54 140 58 C146 58 151 63 150 69 C149 74 143 77 137 75 C141 79 141 85 136 88 C131 91 124 89 122 83" stroke-width="1.2"/>
+        <path d="M118 47 C122 52 121 60 115 63" stroke-width="1"/>
+        <path d="M74 52 C68 60 65 70 68 80 C70 87 67 95 62 101" stroke-width="1.2"/>
+        <path d="M78 58 C74 64 72 70 74 76 C75 80 78 83 82 85 C87 88 91 90 93 94" stroke-width="1.4"/>
+        <path d="M71 73 C69 75 69 77 71 78" stroke-width="1"/>
+        <path d="M74 76 C68 82 62 90 60 98 C58 106 60 114 64 120" stroke-width="1.2"/>
+        <path d="M93 94 C97 99 101 103 101 109 C101 115 97 119 91 125 C83 133 75 141 73 151 C71 159 75 167 83 172" stroke-width="1.4"/>
+        <path d="M95 111 C93 128 91 145 91 162" stroke-width="0.7"/>
+        <path d="M102 112 C104 130 106 146 104 163" stroke-width="0.7"/>
+      </svg>
+    </div>
+    <main class="main" id="main">
+      <div class="empty">Loading studio ledger…</div>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   NUDARA INTIMA — STUDIO LEDGER
+   Inventory, sales, and accounting dashboard
+   ========================================================= */
+
+const KEYS = { products:'nudara:products:npr', sales:'nudara:sales:npr', expenses:'nudara:expenses:npr' };
+let state = { products: [], sales: [], expenses: [], activeTab: 'dashboard', charts: {}, shopFilter: 'All' };
+
+const TABS = [
+  { id:'dashboard', label:'Dashboard' },
+  { id:'progress', label:'Progress' },
+  { id:'inventory', label:'Inventory' },
+  { id:'sales', label:'Sales' },
+  { id:'accounting', label:'Accounting' },
+  { id:'analysis', label:'Analysis' },
+];
+
+const EXPENSE_CATEGORIES = ['Rent','Marketing','Shipping','Supplies','Salaries','Other'];
+const PRODUCT_CATEGORIES = ['Thong','Panties','Lingerie','Swimwear'];
+
+/* ---------------- Utilities ---------------- */
+function uid(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function currency(n){ return 'Rs. ' + (Math.round((n + Number.EPSILON) * 100) / 100).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function dateStr(d){ return d.toISOString().slice(0,10); }
+function prettyDate(s){ const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function todayStr(){ return dateStr(new Date()); }
+function daysAgoStr(n){ const d = new Date(); d.setDate(d.getDate()-n); return dateStr(d); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function productById(id){ return state.products.find(p=>p.id===id); }
+function initials(name){ return (name||'?').trim().slice(0,1).toUpperCase(); }
+function productThumbHTML(p, size){
+  const cls = size==='lg' ? 'photo-preview-lg' : 'product-thumb';
+  const phCls = size==='lg' ? 'photo-preview-lg-placeholder' : 'product-thumb-placeholder';
+  if(p && p.image) return `<img class="${cls}" src="${p.image}" alt="${p.name}">`;
+  return `<div class="${phCls}">${p ? initials(p.name) : '?'}</div>`;
+}
+function readImageAsDataURL(file){
+  return new Promise((resolve,reject)=>{
+    if(!file){ resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Could not read image'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---------------- Sample data ---------------- */
+function buildSampleProducts(){
+  return [
+    {id:uid('p'),name:'Lace Whisper Thong',category:'Thong',sku:'NI-TH-101',cost:220,price:699,stock:58,threshold:15,image:null},
+    {id:uid('p'),name:'Satin Ribbon Thong',category:'Thong',sku:'NI-TH-102',cost:240,price:749,stock:40,threshold:12,image:null},
+    {id:uid('p'),name:'Cheeky Lace Thong',category:'Thong',sku:'NI-TH-103',cost:210,price:649,stock:9,threshold:15,image:null},
+    {id:uid('p'),name:'Lace Trim Brief Panty',category:'Panties',sku:'NI-PN-201',cost:180,price:599,stock:9,threshold:15,image:null},
+    {id:uid('p'),name:'High-Waist Comfort Brief',category:'Panties',sku:'NI-PN-202',cost:250,price:749,stock:41,threshold:12,image:null},
+    {id:uid('p'),name:'Cotton Bikini Panty',category:'Panties',sku:'NI-PN-203',cost:200,price:649,stock:55,threshold:15,image:null},
+    {id:uid('p'),name:'Silk Charm Balconette Bra',category:'Lingerie',sku:'NI-LG-301',cost:650,price:1799,stock:34,threshold:10,image:null},
+    {id:uid('p'),name:'Lace Whisper Bralette',category:'Lingerie',sku:'NI-LG-302',cost:420,price:1299,stock:6,threshold:10,image:null},
+    {id:uid('p'),name:'Velvet Rose Push-Up Bra',category:'Lingerie',sku:'NI-LG-303',cost:720,price:1999,stock:22,threshold:8,image:null},
+    {id:uid('p'),name:'Midnight Silk Bodysuit',category:'Lingerie',sku:'NI-LG-304',cost:1150,price:3299,stock:14,threshold:6,image:null},
+    {id:uid('p'),name:'Lace Cage Bodysuit',category:'Lingerie',sku:'NI-LG-305',cost:1000,price:2899,stock:3,threshold:6,image:null},
+    {id:uid('p'),name:'Bra-Sized Bikini Top',category:'Swimwear',sku:'NI-SW-401',cost:480,price:1499,stock:27,threshold:10,image:null},
+    {id:uid('p'),name:'High-Waist Bikini Bottom',category:'Swimwear',sku:'NI-SW-402',cost:320,price:999,stock:32,threshold:10,image:null},
+    {id:uid('p'),name:'Shaping One-Piece Swimsuit',category:'Swimwear',sku:'NI-SW-403',cost:950,price:2799,stock:4,threshold:8,image:null},
+  ];
+}
+function buildSampleSales(products){
+  const sales = [];
+  for(let day=29; day>=0; day--){
+    const date = daysAgoStr(day);
+    const count = 1 + Math.floor(Math.random()*3);
+    for(let i=0;i<count;i++){
+      const p = products[Math.floor(Math.random()*products.length)];
+      const qty = 1 + Math.floor(Math.random()*3);
+      sales.push({
+        id:uid('s'), productId:p.id, productName:p.name, category:p.category,
+        qty, date, revenue: qty*p.price, cost: qty*p.cost
+      });
+    }
+  }
+  return sales;
+}
+function buildSampleExpenses(){
+  const items = [
+    {description:'Studio rent — monthly', category:'Rent', amount:42000, day:27},
+    {description:'Instagram ad campaign', category:'Marketing', amount:8500, day:24},
+    {description:'Packaging & tissue paper', category:'Supplies', amount:3200, day:21},
+    {description:'Courier — bulk shipment', category:'Shipping', amount:4800, day:18},
+    {description:'Part-time seamstress', category:'Salaries', amount:18000, day:16},
+    {description:'Lace & trim restock', category:'Supplies', amount:9600, day:12},
+    {description:'Email marketing tool', category:'Marketing', amount:1500, day:9},
+    {description:'Local courier — weekly', category:'Shipping', amount:2600, day:5},
+    {description:'Studio utilities', category:'Rent', amount:4200, day:3},
+    {description:'Photo shoot props', category:'Other', amount:2800, day:1},
+  ];
+  return items.map(it=>({ id:uid('e'), description:it.description, category:it.category, amount:it.amount, date:daysAgoStr(it.day) }));
+}
+
+/* ---------------- Storage ---------------- */
+async function loadKey(key, fallbackBuilder){
+  try{
+    const res = await window.storage.get(key, false);
+    if(res && res.value) return JSON.parse(res.value);
+    return null;
+  }catch(e){
+    return null;
+  }
+}
+async function saveKey(key, value){
+  try{
+    await window.storage.set(key, JSON.stringify(value), false);
+  }catch(e){
+    console.error('Storage save failed for', key, e);
+    showToast('Could not save — storage error');
+  }
+}
+async function initData(){
+  let products = await loadKey(KEYS.products);
+  let sales = await loadKey(KEYS.sales);
+  let expenses = await loadKey(KEYS.expenses);
+
+  if(!products){
+    products = buildSampleProducts();
+    await saveKey(KEYS.products, products);
+  }
+  if(!sales){
+    sales = buildSampleSales(products);
+    await saveKey(KEYS.sales, sales);
+  }
+  if(!expenses){
+    expenses = buildSampleExpenses();
+    await saveKey(KEYS.expenses, expenses);
+  }
+  state.products = products;
+  state.sales = sales;
+  state.expenses = expenses;
+}
+async function persistProducts(){ await saveKey(KEYS.products, state.products); }
+async function persistSales(){ await saveKey(KEYS.sales, state.sales); }
+async function persistExpenses(){ await saveKey(KEYS.expenses, state.expenses); }
+
+/* ---------------- Derived data ---------------- */
+function computeKPIs(){
+  const totalRevenue = state.sales.reduce((a,s)=>a+s.revenue,0);
+  const totalCOGS = state.sales.reduce((a,s)=>a+s.cost,0);
+  const totalExpenses = state.expenses.reduce((a,e)=>a+e.amount,0);
+  const netProfit = totalRevenue - totalCOGS - totalExpenses;
+  const inventoryValue = state.products.reduce((a,p)=>a+p.stock*p.cost,0);
+  const lowStock = state.products.filter(p=>p.stock<=p.threshold);
+  const last7 = state.sales.filter(s=>s.date >= daysAgoStr(6)).reduce((a,s)=>a+s.revenue,0);
+  const prev7 = state.sales.filter(s=>s.date >= daysAgoStr(13) && s.date < daysAgoStr(6)).reduce((a,s)=>a+s.revenue,0);
+  const trend = prev7>0 ? ((last7-prev7)/prev7*100) : (last7>0?100:0);
+  return { totalRevenue, totalCOGS, totalExpenses, netProfit, inventoryValue, lowStock, last7, trend };
+}
+function salesByDate(days){
+  const map = {};
+  for(let d=days-1; d>=0; d--){ map[daysAgoStr(d)] = 0; }
+  state.sales.forEach(s=>{ if(s.date in map) map[s.date]+=s.revenue; });
+  return map;
+}
+function topProducts(limit){
+  const map = {};
+  state.sales.forEach(s=>{
+    if(!map[s.productId]) map[s.productId] = {name:s.productName, qty:0, revenue:0};
+    map[s.productId].qty += s.qty;
+    map[s.productId].revenue += s.revenue;
+  });
+  return Object.values(map).sort((a,b)=>b.revenue-a.revenue).slice(0,limit);
+}
+function revenueByCategory(){
+  const map = {};
+  state.sales.forEach(s=>{ map[s.category] = (map[s.category]||0) + s.revenue; });
+  return map;
+}
+function inventoryValueByCategory(){
+  const map = {};
+  state.products.forEach(p=>{ map[p.category] = (map[p.category]||0) + p.stock*p.cost; });
+  return map;
+}
+function expensesByCategory(){
+  const map = {};
+  state.expenses.forEach(e=>{ map[e.category] = (map[e.category]||0) + e.amount; });
+  return map;
+}
+
+/* ---------------- Nav ---------------- */
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = TABS.map(t=>`
+    <button class="nav-item ${state.activeTab===t.id?'active':''}" onclick="setTab('${t.id}')">
+      <span class="dot"></span>${t.label}
+    </button>
+  `).join('');
+}
+function setTab(id){
+  state.activeTab = id;
+  renderNav();
+  renderView();
+}
+
+/* ---------------- Dashboard (shop-style product grid) ---------------- */
+function viewDashboard(){
+  const cats = PRODUCT_CATEGORIES;
+  const filter = state.shopFilter || 'All';
+  const products = filter==='All' ? state.products : state.products.filter(p=>p.category===filter);
+
+  const catTile = (catName)=>{
+    const sample = state.products.find(p=>p.category===catName && p.image) || state.products.find(p=>p.category===catName);
+    const active = filter===catName ? 'active' : '';
+    const media = sample && sample.image
+      ? `<img src="${sample.image}" alt="${catName}">`
+      : `<span class="ph">${catName.slice(0,1)}</span>`;
+    return `
+      <button class="cat-tile ${active}" onclick="setShopFilter('${catName}')">
+        <div class="cat-tile-media">${media}</div>
+        <div class="cat-tile-label">${catName}</div>
+      </button>
+    `;
+  };
+
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-title">Dashboard</div>
+        <div class="view-desc">Browse every style currently in the Nudara Intima collection.</div>
+      </div>
+    </div>
+
+    <div class="cat-rail">
+      <button class="cat-tile ${filter==='All'?'active':''}" onclick="setShopFilter('All')">
+        <div class="cat-tile-media"><span class="ph">✦</span></div>
+        <div class="cat-tile-label">All</div>
+      </button>
+      ${cats.map(catTile).join('')}
+    </div>
+
+    <div class="shop-meta-row">
+      <span class="shop-results">${products.length} ${products.length===1?'style':'styles'}${filter!=='All' ? ' · '+filter : ''}</span>
+    </div>
+
+    ${products.length ? `
+      <div class="shop-grid">
+        ${products.map(p=>`
+          <div class="shop-card" onclick="setTab('inventory')" title="View in Inventory">
+            <div class="shop-card-media">
+              ${p.image ? `<img src="${p.image}" alt="${p.name}">` : `<span class="ph">${initials(p.name)}</span>`}
+              ${p.stock<=p.threshold ? `<span class="shop-badge low">Low Stock</span>` : `<span class="shop-badge new">In Stock</span>`}
+            </div>
+            <div class="shop-card-body">
+              <div class="shop-card-cat">${p.category}</div>
+              <div class="shop-card-name">${p.name}</div>
+              <div class="shop-card-foot">
+                <span class="shop-card-price">${currency(p.price)}</span>
+                <span class="shop-card-stock">${p.stock} in stock</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : `<div class="empty">No styles in this category yet.</div>`}
+  `;
+}
+function setShopFilter(cat){
+  state.shopFilter = cat;
+  renderView();
+}
+
+/* ---------------- Progress (formerly Dashboard) ---------------- */
+function viewProgress(){
+  const k = computeKPIs();
+  const recentSales = [...state.sales].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-title">Progress</div>
+        <div class="view-desc">A clear view of stock, revenue, and margin across Nudara Intima.</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value">${currency(k.totalRevenue)}</div>
+        <div class="kpi-sub ${k.trend>=0?'up':'down'}">${k.trend>=0?'▲':'▼'} ${Math.abs(k.trend).toFixed(1)}% vs prior 7 days</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Net Profit</div>
+        <div class="kpi-value">${currency(k.netProfit)}</div>
+        <div class="kpi-sub">after COGS &amp; operating costs</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Inventory Value</div>
+        <div class="kpi-value">${currency(k.inventoryValue)}</div>
+        <div class="kpi-sub">${state.products.reduce((a,p)=>a+p.stock,0)} units on hand</div>
+      </div>
+      <div class="kpi ${k.lowStock.length?'alert':''}">
+        <div class="kpi-label">Low Stock Alerts</div>
+        <div class="kpi-value">${k.lowStock.length}</div>
+        <div class="kpi-sub ${k.lowStock.length?'down':''}">${k.lowStock.length? 'needs reorder soon' : 'all styles well stocked'}</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <span class="tag-label">30-day trend</span>
+        <div class="card-title">Revenue over time</div>
+        <div class="chart-box"><canvas id="chartRevenueTrend"></canvas></div>
+      </div>
+      <div class="card">
+        <span class="tag-label">Attention</span>
+        <div class="card-title">Low stock styles</div>
+        ${k.lowStock.length ? `
+          <table>
+            <thead><tr><th>Style</th><th>SKU</th><th style="text-align:right">Stock</th></tr></thead>
+            <tbody>
+              ${k.lowStock.map(p=>`
+                <tr>
+                  <td>${p.name}</td>
+                  <td class="small">${p.sku}</td>
+                  <td class="num">${p.stock} / ${p.threshold}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : `<div class="empty">Nothing below threshold right now.</div>`}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <span class="tag-label">Latest</span>
+      <div class="card-title">Recent sales</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Style</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Revenue</th></tr></thead>
+          <tbody>
+            ${recentSales.length ? recentSales.map(s=>`
+              <tr>
+                <td>${prettyDate(s.date)}</td>
+                <td>${s.productName}</td>
+                <td><span class="cat-pill">${s.category}</span></td>
+                <td class="num">${s.qty}</td>
+                <td class="num">${currency(s.revenue)}</td>
+              </tr>
+            `).join('') : `<tr><td colspan="5" class="empty">No sales logged yet.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+function mountProgressCharts(){
+  const trend = salesByDate(30);
+  const labels = Object.keys(trend).map(prettyDate);
+  const data = Object.values(trend);
+  mountChart('chartRevenueTrend', {
+    type:'line',
+    data:{ labels, datasets:[{
+      data, borderColor:'#5E2436', backgroundColor:'rgba(201,140,160,0.18)',
+      borderWidth:2, tension:0.35, fill:true, pointRadius:0, pointHoverRadius:4
+    }]},
+    options: baseChartOptions({y:{ticks:{callback:v=>'Rs. '+v}}})
+  });
+}
+
+/* ---------------- Inventory ---------------- */
+function viewInventory(){
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-title">Inventory</div>
+        <div class="view-desc">Every style, its cost, price, and stock on hand.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="tag-label">New style</span>
+      <div class="card-title">Add a product</div>
+      <form onsubmit="return handleAddProduct(event)">
+        <div class="form-grid">
+          <div><label>Name</label><input required id="pf-name" placeholder="e.g. Lace Balconette Bra"></div>
+          <div><label>Category</label>
+            <select id="pf-category">${PRODUCT_CATEGORIES.map(c=>`<option>${c}</option>`).join('')}</select>
+          </div>
+          <div><label>SKU</label><input required id="pf-sku" placeholder="NI-BR-104"></div>
+          <div><label>Cost (Rs.)</label><input required type="number" min="0" step="0.01" id="pf-cost"></div>
+          <div><label>Price (Rs.)</label><input required type="number" min="0" step="0.01" id="pf-price"></div>
+          <div><label>Stock</label><input required type="number" min="0" step="1" id="pf-stock"></div>
+          <div><label>Low stock at</label><input required type="number" min="0" step="1" id="pf-threshold" value="10"></div>
+        </div>
+        <div style="margin-top:12px;">
+          <label>Photo</label>
+          <div class="photo-upload">
+            <div id="pf-image-preview">${productThumbHTML(null,'lg')}</div>
+            <div style="flex:1;">
+              <input type="file" accept="image/*" id="pf-image" onchange="previewProductImage(event)">
+              <div class="small" style="margin-top:4px;">Optional — a clear front-facing product shot works best.</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Add product</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <span class="tag-label">${state.products.length} styles</span>
+      <div class="card-title">Product list</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Photo</th><th>Style</th><th>SKU</th><th>Category</th><th style="text-align:right">Cost</th><th style="text-align:right">Price</th><th style="text-align:right">Stock</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            ${state.products.map(p=>`
+              <tr>
+                <td>
+                  <label style="cursor:pointer;" title="Click to change photo">
+                    ${productThumbHTML(p)}
+                    <input type="file" accept="image/*" style="display:none;" onchange="handleProductPhotoChange(event,'${p.id}')">
+                  </label>
+                </td>
+                <td>${p.name}</td>
+                <td class="small">${p.sku}</td>
+                <td><span class="cat-pill">${p.category}</span></td>
+                <td class="num">${currency(p.cost)}</td>
+                <td class="num">${currency(p.price)}</td>
+                <td class="num">${p.stock}</td>
+                <td>${p.stock<=p.threshold ? `<span class="pill low">Low</span>` : `<span class="pill ok">OK</span>`}</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="icon-btn" onclick="adjustStock('${p.id}')">± Stock</button>
+                    <button class="icon-btn danger" onclick="deleteProduct('${p.id}')">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function previewProductImage(ev){
+  const file = ev.target.files && ev.target.files[0];
+  const preview = document.getElementById('pf-image-preview');
+  if(!file){ preview.innerHTML = productThumbHTML(null,'lg'); return; }
+  try{
+    const dataUrl = await readImageAsDataURL(file);
+    preview.innerHTML = `<img class="photo-preview-lg" src="${dataUrl}" alt="preview">`;
+  }catch(e){
+    showToast('Could not read image');
+  }
+}
+async function handleAddProduct(ev){
+  ev.preventDefault();
+  const name = document.getElementById('pf-name').value.trim();
+  const category = document.getElementById('pf-category').value;
+  const sku = document.getElementById('pf-sku').value.trim();
+  const cost = parseFloat(document.getElementById('pf-cost').value);
+  const price = parseFloat(document.getElementById('pf-price').value);
+  const stock = parseInt(document.getElementById('pf-stock').value,10);
+  const threshold = parseInt(document.getElementById('pf-threshold').value,10);
+  if(!name || !sku || isNaN(cost) || isNaN(price) || isNaN(stock) || isNaN(threshold)) return false;
+
+  const imageFile = document.getElementById('pf-image').files[0];
+  let image = null;
+  try{ image = await readImageAsDataURL(imageFile); }
+  catch(e){ showToast('Could not read image — saved without a photo'); }
+
+  state.products.push({ id:uid('p'), name, category, sku, cost, price, stock, threshold, image });
+  await persistProducts();
+  showToast('Product added');
+  renderView();
+  return false;
+}
+async function handleProductPhotoChange(ev, id){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const p = productById(id);
+  if(!p) return;
+  try{
+    p.image = await readImageAsDataURL(file);
+    await persistProducts();
+    showToast('Photo updated');
+    renderView();
+  }catch(e){
+    showToast('Could not read image');
+  }
+}
+async function deleteProduct(id){
+  if(!confirm('Remove this product from inventory?')) return;
+  state.products = state.products.filter(p=>p.id!==id);
+  await persistProducts();
+  showToast('Product removed');
+  renderView();
+}
+async function adjustStock(id){
+  const p = productById(id);
+  if(!p) return;
+  const val = prompt(`Adjust stock for "${p.name}"\nCurrent stock: ${p.stock}\nEnter new stock quantity:`, p.stock);
+  if(val===null) return;
+  const n = parseInt(val,10);
+  if(isNaN(n) || n<0){ showToast('Enter a valid quantity'); return; }
+  p.stock = n;
+  await persistProducts();
+  showToast('Stock updated');
+  renderView();
+}
+
+/* ---------------- Sales ---------------- */
+function viewSales(){
+  const recent = [...state.sales].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
+  const firstProduct = state.products[0] || null;
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-title">Sales</div>
+        <div class="view-desc">Log a sale to update revenue and reduce stock automatically.</div>
+      </div>
+    </div>
+
+    <div class="card sale-card-accent">
+      <span class="tag-label">Log sale</span>
+      <div class="card-title">Record a sale</div>
+
+      <div class="sale-picker" id="sale-picker">
+        ${renderSalePickerInner(firstProduct)}
+      </div>
+
+      <form onsubmit="return handleAddSale(event)">
+        <div class="form-grid">
+          <div>
+            <label>Style</label>
+            <select id="sf-product" onchange="updateSalePicker(this.value)">
+              ${state.products.map(p=>`<option value="${p.id}">${p.name} — ${currency(p.price)} (${p.stock} in stock)</option>`).join('')}
+            </select>
+          </div>
+          <div><label>Quantity</label><input required type="number" min="1" step="1" value="1" id="sf-qty"></div>
+          <div><label>Date</label><input required type="date" id="sf-date" value="${todayStr()}"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Log sale</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <span class="tag-label">History</span>
+      <div class="card-title">Recent sales</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Photo</th><th>Date</th><th>Style</th><th>Category</th><th style="text-align:right">Qty</th><th style="text-align:right">Revenue</th><th></th></tr></thead>
+          <tbody>
+            ${recent.length ? recent.map(s=>{
+              const p = productById(s.productId);
+              return `
+              <tr>
+                <td>${productThumbHTML(p)}</td>
+                <td>${prettyDate(s.date)}</td>
+                <td>${s.productName}</td>
+                <td><span class="cat-pill">${s.category}</span></td>
+                <td class="num">${s.qty}</td>
+                <td class="num">${currency(s.revenue)}</td>
+                <td><button class="icon-btn danger" onclick="deleteSale('${s.id}')">Delete</button></td>
+              </tr>
+            `}).join('') : `<tr><td colspan="7" class="empty">No sales logged yet.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+function renderSalePickerInner(p){
+  if(!p) return `<div class="empty">Add a product first to log a sale.</div>`;
+  return `
+    ${productThumbHTML(p,'lg')}
+    <div class="sale-picker-info">
+      <div class="sale-picker-name">${p.name}</div>
+      <div class="sale-picker-meta"><span class="cat-pill">${p.category}</span> &nbsp; ${currency(p.price)} · <span class="stock-tag">${p.stock} in stock</span>${p.stock<=p.threshold ? ' · <span class="pill low">Low</span>' : ''}</div>
+    </div>
+  `;
+}
+function updateSalePicker(productId){
+  const el = document.getElementById('sale-picker');
+  if(!el) return;
+  el.innerHTML = renderSalePickerInner(productById(productId));
+}
+async function handleAddSale(ev){
+  ev.preventDefault();
+  const productId = document.getElementById('sf-product').value;
+  const qty = parseInt(document.getElementById('sf-qty').value,10);
+  const date = document.getElementById('sf-date').value || todayStr();
+  const p = productById(productId);
+  if(!p || isNaN(qty) || qty<1) return false;
+  if(qty > p.stock){ showToast(`Only ${p.stock} in stock — reduce quantity`); return false; }
+
+  p.stock -= qty;
+  state.sales.push({
+    id:uid('s'), productId:p.id, productName:p.name, category:p.category,
+    qty, date, revenue: qty*p.price, cost: qty*p.cost
+  });
+  await persistProducts();
+  await persistSales();
+  showToast('Sale logged');
+  renderView();
+  return false;
+}
+async function deleteSale(id){
+  if(!confirm('Delete this sale record? Stock will not be restored automatically.')) return;
+  state.sales = state.sales.filter(s=>s.id!==id);
+  await persistSales();
+  showToast('Sale deleted');
+  renderView();
+}
+
+/* ---------------- Accounting ---------------- */
+function viewAccounting(){
+  const k = computeKPIs();
+  const recentExpenses = [...state.expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+  const byCat = expensesByCategory();
+
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-title">Accounting</div>
+        <div class="view-desc">Profit &amp; loss overview, expenses, and margins.</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <span class="tag-label">Summary</span>
+        <div class="card-title">Profit &amp; loss</div>
+        <table>
+          <tbody>
+            <tr><td>Revenue</td><td class="num">${currency(k.totalRevenue)}</td></tr>
+            <tr><td>Cost of goods sold</td><td class="num">– ${currency(k.totalCOGS)}</td></tr>
+            <tr><td><strong>Gross profit</strong></td><td class="num"><strong>${currency(k.totalRevenue-k.totalCOGS)}</strong></td></tr>
+            <tr><td>Operating expenses</td><td class="num">– ${currency(k.totalExpenses)}</td></tr>
+            <tr><td><strong>Net profit</strong></td><td class="num"><strong>${currency(k.netProfit)}</strong></td></tr>
+          </tbody>
+        </table>
+        <hr class="divider-dash">
+        <div class="small">Gross margin: ${k.totalRevenue>0 ? (((k.totalRevenue-k.totalCOGS)/k.totalRevenue)*100).toFixed(1) : '0.0'}% · Net margin: ${k.totalRevenue>0 ? ((k.netProfit/k.totalRevenue)*100).toFixed(1) : '0.0'}%</div>
+      </div>
+      <div class="card">
+        <span class="tag-label">Breakdown</span>
+        <div class="card-title">Expenses by category</div>
+        <div class="chart-box"><canvas id="chartExpenseCat"></canvas></div>
+        ${Object.keys(byCat).length===0 ? `<div class="empty">No expenses logged yet.</div>` : ''}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <span class="tag-label">New entry</span>
+      <div class="card-title">Log an expense</div>
+      <form onsubmit="return handleAddExpense(event)">
+        <div class="form-grid">
+          <div><label>Description</label><input required id="ef-desc" placeholder="e.g. Fabric order"></div>
+          <div><label>Category</label>
+            <select id="ef-category">${EXPENSE_CATEGORIES.map(c=>`<option>${c}</option>`).join('')}</select>
+          </div>
+          <div><label>Amount (Rs.)</label><input required type="number" min="0" step="0.01" id="ef-amount"></div>
+          <div><label>Date</label><input required type="date" id="ef-date" value="${todayStr()}"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Log expense</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <span class="tag-label">History</span>
+      <div class="card-title">Recent expenses</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+          <tbody>
+            ${recentExpenses.length ? recentExpenses.map(e=>`
+              <tr>
+                <td>${prettyDate(e.date)}</td>
+                <td>${e.description}</td>
+                <td><span class="cat-pill">${e.category}</span></td>
+                <td class="num">${currency(e.amount)}</td>
+                <td><button class="icon-btn danger" onclick="deleteExpense('${e.id}')">Delete</button></td>
+              </tr>
+            `).join('') : `<tr><td colspan="5" class="empty">No expenses logged yet.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function handleAddExpense(ev){
+  ev.preventDefault();
+  const description = document.getElementById('ef-desc').value.trim();
+  const category = document.getElementById('ef-category').value;
+  const amount = parseFloat(document.getElementById('ef-amount').value);
+  const date = document.getElementById('ef-date').value || todayStr();
+  if(!description || isNaN(amount) || amount<0) return false;
+
+  state.expenses.push({ id:uid('e'), description, category, amount, date });
+  await persistExpenses();
+  showToast('Expense logged');
+  renderView();
+  return false;
+}
+async function deleteExpense(id){
+  if(!confirm('Delete this expense record?')) return;
+  state.expenses = state.expenses.filter(e=>e.id!==id);
+  await persistExpenses();
+  showToast('Expense deleted');
+  renderView();
+}
+function mountAccountingCharts(){
+  const byCat = expensesByCategory();
+  const labels = Object.keys(byCat);
+  if(!labels.length) return;
+  mountChart('chartExpenseCat', {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data:Object.values(byCat), backgroundColor:palette(labels.length), borderWidth:0 }]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{family:'Manrope', size:11} } } }, maintainAspectRatio:false }
+  });
+}
+
+/* ---------------- Analysis ---------------- */
+function viewAnalysis(){
+  return `
+    <div class="view-header">
+      <div>
+        <div class="view-title">Analysis</div>
+        <div class="view-desc">How styles and categories are performing across the studio.</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <span class="tag-label">Best sellers</span>
+        <div class="card-title">Top styles by revenue</div>
+        <div class="chart-box tall"><canvas id="chartTopProducts"></canvas></div>
+      </div>
+      <div class="card">
+        <span class="tag-label">Mix</span>
+        <div class="card-title">Revenue by category</div>
+        <div class="chart-box tall"><canvas id="chartRevenueCat"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <span class="tag-label">Stock health</span>
+      <div class="card-title">Inventory value by category</div>
+      <div class="chart-box"><canvas id="chartInventoryCat"></canvas></div>
+    </div>
+  `;
+}
+function mountAnalysisCharts(){
+  const top = topProducts(8);
+  mountChart('chartTopProducts', {
+    type:'bar',
+    data:{ labels: top.map(t=>t.name), datasets:[{ data: top.map(t=>t.revenue), backgroundColor:'#C98CA0', borderRadius:2 }]},
+    options: { ...baseChartOptions({}), indexAxis:'y', plugins:{legend:{display:false}} }
+  });
+
+  const cat = revenueByCategory();
+  mountChart('chartRevenueCat', {
+    type:'pie',
+    data:{ labels:Object.keys(cat), datasets:[{ data:Object.values(cat), backgroundColor:palette(Object.keys(cat).length), borderWidth:0 }]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{family:'Manrope', size:11} } } }, maintainAspectRatio:false }
+  });
+
+  const inv = inventoryValueByCategory();
+  mountChart('chartInventoryCat', {
+    type:'bar',
+    data:{ labels:Object.keys(inv), datasets:[{ data:Object.values(inv), backgroundColor:'#5E2436', borderRadius:2 }]},
+    options: { ...baseChartOptions({}), plugins:{legend:{display:false}} }
+  });
+}
+
+/* ---------------- Chart helpers ---------------- */
+function palette(n){
+  const colors = ['#5E2436','#C98CA0','#B7935A','#8A7A74','#A6414B','#54724F','#E9D2D8','#421A26'];
+  const out = [];
+  for(let i=0;i<n;i++) out.push(colors[i%colors.length]);
+  return out;
+}
+function baseChartOptions(overrides){
+  return Object.assign({
+    responsive:true, maintainAspectRatio:false,
+    scales:{
+      x:{ grid:{ display:false }, ticks:{ font:{family:'Manrope', size:10.5}, color:'#8A7A74' } },
+      y:{ grid:{ color:'#EFE5E1' }, ticks:{ font:{family:'IBM Plex Mono', size:10.5}, color:'#8A7A74' } }
+    },
+    plugins:{ legend:{ display:false } }
+  }, overrides);
+}
+function mountChart(canvasId, config){
+  const el = document.getElementById(canvasId);
+  if(!el) return;
+  if(state.charts[canvasId]) state.charts[canvasId].destroy();
+  state.charts[canvasId] = new Chart(el.getContext('2d'), config);
+}
+
+/* ---------------- Render dispatch ---------------- */
+function renderView(){
+  const main = document.getElementById('main');
+  let html = '';
+  if(state.activeTab==='dashboard') html = viewDashboard();
+  else if(state.activeTab==='progress') html = viewProgress();
+  else if(state.activeTab==='inventory') html = viewInventory();
+  else if(state.activeTab==='sales') html = viewSales();
+  else if(state.activeTab==='accounting') html = viewAccounting();
+  else if(state.activeTab==='analysis') html = viewAnalysis();
+  main.innerHTML = html;
+
+  requestAnimationFrame(()=>{
+    if(state.activeTab==='progress') mountProgressCharts();
+    if(state.activeTab==='accounting') mountAccountingCharts();
+    if(state.activeTab==='analysis') mountAnalysisCharts();
+  });
+}
+
+/* ---------------- Init ---------------- */
+(async function init(){
+  renderNav();
+  try{
+    await initData();
+  }catch(e){
+    console.error(e);
+    document.getElementById('main').innerHTML = '<div class="empty">Could not load the ledger. Please refresh.</div>';
+    return;
+  }
+  renderView();
+})();
+</script>
+</body>
+</html>
